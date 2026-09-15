@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#123A5E">
+<title>Swing Scanner</title>
+<link rel="manifest" href="manifest.json">
+<style>
+:root{--bg:#0B1020;--card:#151D2E;--card2:#1C2537;--line:#2A3448;--tx:#E9EFF8;
+ --dim:#8D9BB3;--gold:#E0A800;--grn:#3FBF7F;--red:#FF6B6B;--blue:#4A8FD4}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding-bottom:env(safe-area-inset-bottom)}
+header{background:linear-gradient(135deg,#123A5E,#1E5C8A);padding:calc(13px + env(safe-area-inset-top)) 16px 13px;position:sticky;top:0;z-index:10;box-shadow:0 2px 12px rgba(0,0,0,.45)}
+h1{margin:0;font-size:18px;font-weight:700}
+.sub{font-size:12px;color:#BBD3E8;margin-top:3px}
+.hr{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.rf{background:none;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:7px;padding:5px 11px;font-size:12px}
+.tabs{display:flex;background:var(--card);position:sticky;top:calc(60px + env(safe-area-inset-top));z-index:9;border-bottom:1px solid var(--line)}
+.tab{flex:1;padding:13px 4px;text-align:center;font-size:13px;font-weight:600;color:var(--dim);border-bottom:2.5px solid transparent;user-select:none}
+.tab.on{color:#fff;border-bottom-color:var(--gold)}
+.wrap{padding:12px 12px 28px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 13px;margin-bottom:10px}
+.r1{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sym{font-size:17px;font-weight:700}
+.rk{display:inline-block;background:#123A5E;color:#fff;font-size:11px;font-weight:700;border-radius:5px;padding:2px 6px;margin-right:7px}
+.px{font-size:15px;font-weight:600;text-align:right;white-space:nowrap}
+.sc{font-size:22px;font-weight:700;color:var(--gold)}
+.b{font-size:11px;padding:3px 8px;border-radius:20px;background:var(--card2);border:1px solid var(--line);color:var(--dim);white-space:nowrap}
+.b.g{background:rgba(63,191,127,.16);border-color:#2E7D52;color:#7FE0AC}
+.b.gold{background:rgba(224,168,0,.15);border-color:#8A6D14;color:#F3CC5C}
+.b.bl{background:rgba(74,143,212,.16);border-color:#2E5C8A;color:#93C3EE}
+.bs{margin:9px 0 0;display:flex;flex-wrap:wrap;gap:5px}
+.lv{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.lv div{text-align:center}
+.k{font-size:9.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.4px}
+.v{font-size:13.5px;font-weight:600;margin-top:2px}
+.up{color:var(--grn)}.down{color:var(--red)}
+.warn{background:rgba(255,107,107,.12);border:1px solid #8C2F28;color:#FFB0AB;border-radius:8px;padding:8px 10px;margin-top:9px;font-size:12px;line-height:1.5}
+.sect{margin-top:11px;padding-top:10px;border-top:1px solid var(--line)}
+.sh{font-size:12.5px;color:var(--gold);font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.sb{display:none;margin-top:9px}
+.row{display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;border-bottom:1px solid rgba(42,52,72,.5);gap:10px}
+.row:last-child{border-bottom:none}
+.rl{color:var(--dim)}.rv{font-weight:600;text-align:right}
+ul.why{margin:6px 0 0;padding-left:17px;font-size:12.5px;color:var(--dim);line-height:1.6}
+ul.why li{margin-bottom:4px}
+.zone{font-size:12px;color:var(--dim);padding:5px 0;border-bottom:1px solid rgba(42,52,72,.5)}
+.empty{text-align:center;color:var(--dim);padding:46px 22px;font-size:14px;line-height:1.65}
+.note{background:rgba(224,168,0,.1);border:1px solid #8A6D14;color:#F3CC5C;border-radius:10px;padding:11px 13px;margin-bottom:11px;font-size:13px}
+.mh{font-size:15px;font-weight:700;color:var(--gold);margin-bottom:8px}
+.mp{font-size:13px;color:var(--dim);margin:0 0 8px;line-height:1.6}
+.mt{font-size:13px;font-weight:700;margin:13px 0 6px;color:#CBD8EC}
+table.m{width:100%;border-collapse:collapse;font-size:12.5px}
+table.m td{padding:4px 6px;border-bottom:1px solid var(--line);color:var(--dim);vertical-align:top}
+table.m td:first-child{width:44px;font-weight:700;color:#8FB4E8;text-align:right}
+.chart{margin-top:10px;background:#0E1626;border:1px solid var(--line);border-radius:8px;padding:4px}
+.load{text-align:center;padding:56px 20px;color:var(--dim)}
+.sp{width:26px;height:26px;border:3px solid var(--line);border-top-color:var(--gold);border-radius:50%;animation:s .8s linear infinite;margin:0 auto 14px}
+@keyframes s{to{transform:rotate(360deg)}}
+</style></head><body>
+<header><div class="hr"><div><h1>Swing Scanner</h1><div class="sub" id="meta">Loading…</div></div>
+<button class="rf" onclick="load(1)">Refresh</button></div></header>
+<div class="tabs">
+ <div class="tab on" data-k="reversal">Reversal</div>
+ <div class="tab" data-k="continuation">Continuation</div>
+ <div class="tab" data-k="method">Method</div>
+</div>
+<div class="wrap" id="out"><div class="load"><div class="sp"></div>Loading…</div></div>
+<script>
+var DATA=null, TAB='reversal';
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function n(v,s){return (v==null)?'—':v+(s||'');}
+function tg(id,el){var e=document.getElementById(id);var o=e.style.display==='block';e.style.display=o?'none':'block';el.querySelector('.ar').textContent=o?'▾':'▴';}
+
+function tierBadge(t){
+  var cls = t.indexOf('Strong')>-1 ? 'g' : t.indexOf('Confirmed')>-1 ? 'bl' : 'gold';
+  return '<span class="b '+cls+'">'+esc(t)+'</span>';
+}
+
+function rows(pairs){
+  var h='';
+  for(var i=0;i<pairs.length;i++){
+    if(pairs[i][1]==null||pairs[i][1]==='') continue;
+    h+='<div class="row"><span class="rl">'+esc(pairs[i][0])+'</span><span class="rv">'+pairs[i][1]+'</span></div>';
+  }
+  return h;
+}
+
+
+function svgChart(r){
+  var C=r.chart; if(!C||!C.c||!C.c.length) return '';
+  var W=340,H=170,PL=4,PR=44,PT=8,PB=16;
+  var n=C.c.length, lo=1e9, hi=-1e9;
+  for(var i=0;i<n;i++){ if(C.l[i]!=null&&C.l[i]<lo)lo=C.l[i]; if(C.h[i]!=null&&C.h[i]>hi)hi=C.h[i]; }
+  [r.support,r.resistance].forEach(function(z){ if(z){ if(z.price<lo)lo=z.price; if(z.price>hi)hi=z.price; }});
+  if(r.trigger_level){ if(r.trigger_level>hi)hi=r.trigger_level; if(r.trigger_level<lo)lo=r.trigger_level; }
+  var pad=(hi-lo)*0.06||1; lo-=pad; hi+=pad;
+  var iw=W-PL-PR, ih=H-PT-PB;
+  function X(i){return PL+ i*(iw/(n-1||1));}
+  function Y(p){return PT+ (hi-p)/(hi-lo)*ih;}
+  var s='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block">';
+  // zones
+  if(r.support) s+='<rect x="'+PL+'" y="'+Y(r.support.high).toFixed(1)+'" width="'+iw+'" height="'+Math.max(1,(Y(r.support.low)-Y(r.support.high))).toFixed(1)+'" fill="#3FBF7F" opacity=".13"/>';
+  if(r.resistance) s+='<rect x="'+PL+'" y="'+Y(r.resistance.high).toFixed(1)+'" width="'+iw+'" height="'+Math.max(1,(Y(r.resistance.low)-Y(r.resistance.high))).toFixed(1)+'" fill="#FF6B6B" opacity=".13"/>';
+  // trigger line
+  if(r.trigger_level) s+='<line x1="'+PL+'" y1="'+Y(r.trigger_level).toFixed(1)+'" x2="'+(PL+iw)+'" y2="'+Y(r.trigger_level).toFixed(1)+'" stroke="#E0A800" stroke-width="1" stroke-dasharray="4 3"/>'+
+    '<text x="'+(PL+iw+3)+'" y="'+(Y(r.trigger_level)+3).toFixed(1)+'" fill="#E0A800" font-size="8">trig '+r.trigger_level+'</text>';
+  // stop
+  if(r.stop) s+='<line x1="'+PL+'" y1="'+Y(r.stop).toFixed(1)+'" x2="'+(PL+iw)+'" y2="'+Y(r.stop).toFixed(1)+'" stroke="#FF6B6B" stroke-width="1" stroke-dasharray="2 3"/>'+
+    '<text x="'+(PL+iw+3)+'" y="'+(Y(r.stop)+3).toFixed(1)+'" fill="#FF6B6B" font-size="8">SL '+r.stop+'</text>';
+  // candles
+  var cw=Math.max(1.1, iw/n*0.62);
+  for(var i=0;i<n;i++){
+    if(C.c[i]==null) continue;
+    var up=C.c[i]>=C.o[i], col=up?'#3FBF7F':'#FF6B6B', x=X(i);
+    s+='<line x1="'+x.toFixed(1)+'" y1="'+Y(C.h[i]).toFixed(1)+'" x2="'+x.toFixed(1)+'" y2="'+Y(C.l[i]).toFixed(1)+'" stroke="'+col+'" stroke-width=".7"/>';
+    var y1=Y(Math.max(C.o[i],C.c[i])), y2=Y(Math.min(C.o[i],C.c[i]));
+    s+='<rect x="'+(x-cw/2).toFixed(1)+'" y="'+y1.toFixed(1)+'" width="'+cw.toFixed(1)+'" height="'+Math.max(.8,y2-y1).toFixed(1)+'" fill="'+col+'"/>';
+  }
+  // MAs
+  function path(arr,col){var d='',st=false;
+    for(var i=0;i<n;i++){ if(arr[i]==null){st=false;continue;} d+=(st?'L':'M')+X(i).toFixed(1)+' '+Y(arr[i]).toFixed(1)+' '; st=true; }
+    return d?'<path d="'+d+'" fill="none" stroke="'+col+'" stroke-width=".9" opacity=".85"/>':''; }
+  s+=path(C.dma20,'#4A8FD4')+path(C.dma50,'#9B7BD4');
+  // pattern lines
+  (r.patterns||[]).slice(0,1).forEach(function(p){
+    if(!p.lines) return;
+    ['upper','lower'].forEach(function(k){
+      var L=p.lines[k]; if(!L) return;
+      var x1=L[0]-(C.offset||0), x2=L[2]-(C.offset||0);
+      if(x1<0)x1=0; if(x2>n-1)x2=n-1;
+      s+='<line x1="'+X(x1).toFixed(1)+'" y1="'+Y(L[1]).toFixed(1)+'" x2="'+X(x2).toFixed(1)+'" y2="'+Y(L[3]).toFixed(1)+'" stroke="#E0A800" stroke-width=".9" opacity=".75" stroke-dasharray="3 2"/>';
+    });
+  });
+  // pivot labels
+  (C.pivot_lows||[]).forEach(function(p){ if(p.lab==='HL'||p.lab==='LL')
+    s+='<text x="'+X(p.x).toFixed(1)+'" y="'+(Y(p.y)+9).toFixed(1)+'" fill="'+(p.lab==='HL'?'#7FE0AC':'#FFB0AB')+'" font-size="7" text-anchor="middle">'+p.lab+'</text>'; });
+  (C.pivot_highs||[]).forEach(function(p){ if(p.lab==='LH'||p.lab==='HH')
+    s+='<text x="'+X(p.x).toFixed(1)+'" y="'+(Y(p.y)-3).toFixed(1)+'" fill="'+(p.lab==='HH'?'#7FE0AC':'#FFB0AB')+'" font-size="7" text-anchor="middle">'+p.lab+'</text>'; });
+  return s+'</svg>';
+}
+
+function card(r,i){
+  var S=r.structure||{}, V=r.volume||{}, R=r.rsi||{}, M=r.ma||{}, sp=r.support, rz=r.resistance;
+  var isRev = r.setup==='Reversal';
+  var id='d'+TAB+i;
+
+  var b='';
+  b+=tierBadge(r.tier||'');
+  b+='<span class="b">'+esc(r.grade)+'</span>';
+  if(r.confirmed) b+='<span class="b g">Breakout confirmed</span>'; else b+='<span class="b gold">Not yet broken out</span>';
+  if(sp) b+='<span class="b">Support '+sp.score+'/9 '+esc(sp.grade)+'</span>';
+  if(V.selling_weakening) b+='<span class="b">Selling drying up</span>';
+  if(V.pullback_contracted) b+='<span class="b">Pullback on low volume</span>';
+  if(R.divergence) b+='<span class="b g">RSI divergence</span>';
+  (r.patterns||[]).forEach(function(p){
+    var cl = p.type==='bullish'?'g':p.type==='bearish'?'':'bl';
+    b+='<span class="b '+cl+'">'+esc(p.name)+'</span>';
+  });
+
+  var w='';
+  if(r.warnings&&r.warnings.length){
+    w='<div class="warn">⚠ '+r.warnings.map(esc).join('<br>⚠ ')+'</div>';
+  }
+
+  // detail sections
+  var struct = isRev ? rows([
+      ['Prior Lower Low','₹'+n(S.prior_ll)],
+      ['Higher Low','₹'+n(S.higher_low)],
+      ['HL above prior LL',n(S.hl_gap_atr)+' ATR'],
+      ['Bounce off HL',n(S.bounce_atr)+' ATR'],
+      ['Key Lower High (trigger)','₹'+n(S.key_lh)],
+      ['Days since breakout',n(S.days_since_breakout)]
+    ]) : rows([
+      ['Previous Higher Low','₹'+n(S.prev_hl)],
+      ['Prior Higher High','₹'+n(S.prior_hh)],
+      ['New Higher Low','₹'+n(S.higher_low)],
+      ['Impulse size',n(S.impulse_atr)+' ATR'],
+      ['Pullback depth',n(S.pullback_pct_of_impulse)+'% of impulse'],
+      ['Above 20 DMA',n(S.ext_above_20dma)+'%'],
+      ['Days since breakout',n(S.days_since_breakout)]
+    ]);
+
+  var sr='';
+  if(sp) sr+='<div class="zone"><b style="color:#7FE0AC">Support ₹'+n(sp.price)+'</b> (zone ₹'+n(sp.low)+'–'+n(sp.high)+')<br>'+
+    sp.touches+' touch'+(sp.touches>1?'es':'')+' · score '+sp.score+'/9 · '+esc(sp.grade)+
+    (sp.bounces&&sp.bounces.length?'<br>bounces: '+sp.bounces.map(function(x){return x+'%';}).join(', '):'')+
+    (sp.weakening?'<br><span style="color:#FFB0AB">bounces weakening — level may not hold</span>':'')+'</div>';
+  if(rz) sr+='<div class="zone"><b style="color:#FFB0AB">Resistance ₹'+n(rz.price)+'</b> (zone ₹'+n(rz.low)+'–'+n(rz.high)+')<br>'+
+    rz.touches+' rejection'+(rz.touches>1?'s':'')+' · score '+rz.score+'/9 · '+esc(rz.grade)+'</div>';
+
+  var conf = rows([
+      ['Breakout volume', V.breakout_ratio? V.breakout_ratio+'× avg' : 'not yet'],
+      [isRev?'Volume into prior LL':'Volume during impulse', isRev?n(V.decline_vol_ll)+'×':n(V.impulse_vol)+'×'],
+      [isRev?'Volume into HL':'Volume during pullback', isRev?n(V.decline_vol_hl)+'×':n(V.pullback_vol)+'×'],
+      ['RSI now', n(R.now)],
+      isRev?['RSI at prior LL',n(R.at_ll)]:['RSI at HL',n(R.at_hl)],
+      isRev?['RSI at HL',n(R.at_hl)]:['RSI healthy',R.healthy?'yes':'no'],
+      ['Above 20 DMA', M.above_20dma==null? (M.dma20?'₹'+n(M.dma20):null) : (M.above_20dma?'yes':'no')],
+      ['20 DMA > 50 DMA', M.dma20_above_50?'yes':null],
+      ['50 DMA rising', M.dma50_rising?'yes':null]
+    ]);
+
+  var comp='';
+  if(r.components){ for(var k in r.components){
+    comp+='<div class="row"><span class="rl">'+esc(k.replace(/_/g,' '))+'</span><span class="rv">'+r.components[k]+'</span></div>';}}
+
+  return '<div class="card">'+
+   '<div class="r1"><div><span class="rk">'+(i+1)+'</span><span class="sym">'+esc(r.symbol)+'</span></div>'+
+   '<div class="px">₹'+n(r.cmp)+'<br><span class="sc">'+n(r.score)+'</span></div></div>'+
+   '<div class="bs">'+b+'</div>'+ w + '<div class="chart">'+svgChart(r)+'</div>'+
+   '<div class="lv">'+
+     '<div><div class="k">Trigger</div><div class="v">₹'+n(r.trigger_level)+'</div></div>'+
+     '<div><div class="k">Stop</div><div class="v down">₹'+n(r.stop)+'</div></div>'+
+     '<div><div class="k">Target 1</div><div class="v up">₹'+n(r.target1)+'</div></div>'+
+     '<div><div class="k">R:R</div><div class="v">'+n(r.rr)+'</div></div>'+
+   '</div>'+
+   '<div class="sect"><div class="sh" onclick="tg(\''+id+'\',this)">Full detail <span class="ar">▾</span></div>'+
+     '<div class="sb" id="'+id+'">'+
+       '<div class="mt">Price structure</div>'+struct+
+       '<div class="mt">Support &amp; resistance zones</div>'+sr+
+       '<div class="mt">Confirmation</div>'+conf+
+       (r.patterns&&r.patterns.length?'<div class="mt">Chart patterns</div>'+
+   r.patterns.map(function(p){return '<div class="zone"><b>'+esc(p.name)+'</b> · '+esc(p.type)+
+   ' · confidence '+p.confidence+'<br>'+esc(p.note)+'</div>';}).join(''):'')+
+ '<div class="mt">Score breakdown</div>'+comp+
+       '<div class="mt">Trade</div>'+rows([
+         ['Risk','−'+n(r.risk_pct)+'%'],['Reward to T1','+'+n(r.reward_pct)+'%'],
+         ['Target 2','₹'+n(r.target2)],['ATR (14)','₹'+n(r.atr)],
+         ['20d turnover', r.turnover_cr? '₹'+r.turnover_cr+' Cr':null],
+         ['Market cap', r.mcap_cr? '₹'+r.mcap_cr+' Cr':null]])+
+     '</div></div>'+
+   '</div>';
+}
+
+var METHOD='<div class="card"><div class="mh">How this works</div>'+
+'<p class="mp">One scan, two mutually-exclusive classifications. A stock is either in a downtrend (Reversal) or an uptrend (Continuation).</p>'+
+'<p class="mp"><b>Price structure is the trigger. Indicators only confirm.</b> Mandatory conditions gate; confirmations score. Everything is ATR-normalised so thresholds adapt to each stock\'s volatility.</p>'+
+'<p class="mp">Daily candles, 90-day primary context. Swing pivots are 5-candle (2 left / 2 right), filtered so a swing must move ≥1.5 ATR to count — this strips out chart noise.</p></div>'+
+
+'<div class="card"><div class="mh">Reversal — 100 pts</div>'+
+'<p class="mp">Downtrend → support → LL → HL → break of Lower High → volume → RSI</p>'+
+'<table class="m"><tr><td>10</td><td>Downtrend structure established (LH + LL)</td></tr>'+
+'<tr><td>15</td><td>Strong support</td></tr><tr><td>10</td><td>Meaningful LL near support</td></tr>'+
+'<tr><td>20</td><td><b>Strong Higher Low</b></td></tr><tr><td>10</td><td>Key LH/resistance identified</td></tr>'+
+'<tr><td>15</td><td><b>LH breakout</b></td></tr><tr><td>10</td><td>Volume confirmation</td></tr>'+
+'<tr><td>5</td><td>RSI confirmation</td></tr><tr><td>5</td><td>Moving-average confirmation</td></tr></table>'+
+'<p class="mp" style="margin-top:8px">The Higher Low is validated on three tests: ≥0.5 ATR above the prior LL, a bounce of ≥1 ATR off it, and declining selling volume between the two lows. This is the dead-cat-bounce filter.</p></div>'+
+
+'<div class="card"><div class="mh">Continuation — 100 pts</div>'+
+'<p class="mp">Uptrend → impulse → controlled pullback → support → HL → break of previous HH</p>'+
+'<table class="m"><tr><td>15</td><td>Established HH/HL uptrend</td></tr>'+
+'<tr><td>10</td><td>Trend strength (20 DMA &gt; 50 DMA, 50 rising)</td></tr>'+
+'<tr><td>10</td><td>Strong prior impulse (≥2 ATR)</td></tr>'+
+'<tr><td>15</td><td>Quality of pullback</td></tr><tr><td>15</td><td>Strong support</td></tr>'+
+'<tr><td>15</td><td>Higher Low confirmation</td></tr><tr><td>10</td><td>HH breakout</td></tr>'+
+'<tr><td>5</td><td>Volume</td></tr><tr><td>3</td><td>RSI</td></tr><tr><td>2</td><td>Risk/reward &amp; extension</td></tr></table>'+
+'<p class="mp" style="margin-top:8px">Pullback depth: 20–40% of the impulse is ideal, 40–50% good, beyond 61.8% rejected. Breaking the previous HL rejects outright — the structure is damaged.</p></div>'+
+
+'<div class="card"><div class="mh">Support &amp; resistance scoring — 9 pts</div>'+
+'<table class="m"><tr><td>+1</td><td>1 significant reaction</td></tr><tr><td>+2</td><td>2 reactions</td></tr>'+
+'<tr><td>+3</td><td>3+ reactions</td></tr><tr><td>+1</td><td>Strong bounce / rejection</td></tr>'+
+'<tr><td>+1</td><td>Above-average volume at the reaction</td></tr>'+
+'<tr><td>+2</td><td>Role reversal (old resistance → support)</td></tr>'+
+'<tr><td>+1</td><td>Aligns with 50 DMA</td></tr><tr><td>+1</td><td>Aligns with 200 DMA</td></tr></table>'+
+'<p class="mp" style="margin-top:8px">7–9 Strong · 5–6 Good · 3–4 Weak · below 3 ignored. Zones are clustered by ATR, never exact prices. Bounce quality is tracked per touch — repeated touches with <i>weakening</i> bounces are flagged, since that means buyers are getting exhausted, not stronger.</p></div>'+
+
+'<div class="card"><div class="mh">Grades &amp; a caveat</div>'+
+'<p class="mp">80–100 A+ · 70–79 Strong · 60–69 Watchlist · below 60 ignored.</p>'+
+'<p class="mp">Risk/reward carries little weight in the score, so a structurally excellent setup can still be a poor trade. Where that happens it is flagged in red on the card — <b>read those warnings before acting on a high score</b>.</p>'+
+'<p class="mp">These weights are reasoned starting points, not backtested or optimised.</p></div>';
+
+function render(){
+  var o=document.getElementById('out');
+  if(TAB==='method'){o.innerHTML=METHOD;window.scrollTo(0,0);return;}
+  if(!DATA)return;
+  var list=DATA[TAB]||[], h='';
+  (DATA.notes||[]).forEach(function(x){h+='<div class="note">⚠️ '+esc(x)+'</div>';});
+  if(!list.length){
+    h+='<div class="empty">No '+TAB+' setups today.<br><br>Every stage is mandatory — nothing cleared the full sequence. That is a real result, not an error.</div>';
+  } else { list.forEach(function(r,i){h+=card(r,i);}); }
+  o.innerHTML=h; window.scrollTo(0,0);
+}
+
+function load(bust){
+  fetch('data.json'+(bust?('?t='+Date.now()):''),{cache:bust?'reload':'default'})
+   .then(function(r){if(!r.ok)throw new Error(r.status);return r.json();})
+   .then(function(d){DATA=d;
+     var c=d.counts||{};
+     document.getElementById('meta').textContent=
+       d.generated_at+' · '+d.scanned+' scanned · '+(c.reversal||0)+' rev / '+(c.continuation||0)+' cont';
+     render();})
+   .catch(function(e){
+     document.getElementById('out').innerHTML='<div class="empty">Could not load data.<br><br>If this is the first run, the scan may not have completed yet.<br><span style="font-size:12px;color:#6B7A94">('+esc(e.message)+')</span></div>';
+     document.getElementById('meta').textContent='No data';});
+}
+Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(t){
+  t.onclick=function(){Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(x){x.classList.remove('on');});
+  t.classList.add('on');TAB=t.dataset.k;render();};});
+load();
+</script></body></html>
