@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-15 10:51 UTC",
+ "generated_at": "2026-09-15 13:35 UTC",
  "scanned": 500,
  "notes": [],
  "stage_fails": {
@@ -4991,7 +4991,7 @@
      320.52,
      331.49,
      334.64,
-     338.82,
+     338.83,
      346.45,
      343.01,
      335.87,
@@ -9738,7 +9738,7 @@
    "qualified": true,
    "tier": "Strong reversal",
    "confirmed": true,
-   "score": 79.4,
+   "score": 79.1,
    "grade": "Strong candidate",
    "cmp": 640.15,
    "atr": 14.64,
@@ -9755,10 +9755,10 @@
     "days_since_breakout": 24
    },
    "support": {
-    "price": 635.83,
-    "low": 612.0,
-    "high": 659.66,
-    "touches": 9,
+    "price": 634.77,
+    "low": 610.95,
+    "high": 658.6,
+    "touches": 8,
     "score": 5,
     "grade": "Good",
     "best_bounce_pct": 23.4,
@@ -9769,7 +9769,6 @@
      13.2,
      16.6,
      14.4,
-     19.0,
      4.8,
      5.5
     ],
@@ -9828,17 +9827,17 @@
     "above_50dma": false,
     "dma20_rising": false
    },
-   "stop": 629.47,
+   "stop": 628.42,
    "target1": 682.52,
    "target2": 736.2,
-   "rr": 3.97,
-   "risk_pct": 1.7,
+   "rr": 3.61,
+   "risk_pct": 1.8,
    "reward_pct": 6.6,
    "warnings": [],
    "components": {
     "downtrend": 10,
     "support": 8.3,
-    "ll_at_support": 9.8,
+    "ll_at_support": 9.5,
     "higher_low": 16.0,
     "resistance": 7.8,
     "breakout": 15.0,
@@ -10607,14 +10606,9 @@
       "lab": "="
      },
      {
-      "x": 26,
-      "y": 644.3,
-      "lab": "HL"
-     },
-     {
       "x": 36,
       "y": 648.97,
-      "lab": "="
+      "lab": "HL"
      },
      {
       "x": 41,
