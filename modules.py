@@ -40,7 +40,8 @@ def _chart_series(df, lows, highs, bars=90):
         "o": clean(d["Open"]), "h": clean(d["High"]),
         "l": clean(d["Low"]),  "c": clean(c),
         "v": [int(x) for x in d["Volume"].fillna(0)],
-        "dates": [str(x)[:10] for x in d.index],
+        "dates": (list(d["_date"]) if "_date" in d.columns
+                  else [str(x)[:10] for x in d.index]),
         "dma20": clean(d20), "dma50": clean(d50),
         "offset": off,
         "pivot_lows":  [{"x": p["i"] - off, "y": round(p["price"], 2), "lab": p.get("label", "")}
@@ -177,6 +178,14 @@ def scan_reversal(sym, df, lows, highs, supports, resistances, cfg=CFG):
         ext = (last - key_lh["price"]) / key_lh["price"] * 100
         if ext > cfg["max_ext_above_trigger"]:
             return no("7_extended", f"{ext:.0f}% above the breakout level — entry would be chasing")
+
+        # FRESHNESS. days_since_breakout was reported but never constrained, so
+        # a breakout from 15 days ago still surfaced as a new pick today -- you
+        # were buying the pullback after the move, not the move. A stock can sit
+        # only slightly above the trigger yet be well past its momentum.
+        age = len(df) - 1 - bo_i
+        if age > cfg["max_days_since_breakout"]:
+            return no("7_stale", f"breakout was {age} days ago — the move has already happened")
 
     # ── selling pressure weakening across the two declines ───────────────
     v_ll = _leg_vol(df, max(0, prior_ll["i"] - 15), prior_ll["i"])
@@ -344,6 +353,13 @@ def scan_continuation(sym, df, lows, highs, supports, resistances, cfg=CFG):
     if ext > cfg["max_ext_above_20dma"]:
         return no("12_extended", f"{ext:.0f}% above the 20 DMA — poor risk/reward here")
 
+    # Freshness -- same reasoning as reversal: a confirmed breakout from two
+    # weeks ago is history, not a signal.
+    if confirmed:
+        age = len(df) - 1 - bo_i
+        if age > cfg["max_days_since_breakout"]:
+            return no("12_stale", f"breakout was {age} days ago — already played out")
+
     # pullback volume should CONTRACT vs the impulse (profit-taking, not distribution)
     v_imp = _leg_vol(df, prev_hl["i"], prior_hh["i"])
     v_pull = _leg_vol(df, prior_hh["i"], hl["i"])
@@ -423,7 +439,15 @@ def scan(sym, df, cfg=CFG):
     """
     if df is None or len(df) < 120:
         return {"symbol": sym, "qualified": False, "failed_at": "data"}
-    df = df.tail(cfg["lookback_days"] + 60).reset_index(drop=True)
+    df = df.tail(cfg["lookback_days"] + 60).copy()
+    # Keep the real calendar dates before resetting the index -- the charting
+    # library needs YYYY-MM-DD, and reset_index(drop=True) would otherwise
+    # leave only integer positions.
+    try:
+        df["_date"] = [str(x)[:10] for x in df.index]
+    except Exception:
+        df["_date"] = [str(i) for i in range(len(df))]
+    df = df.reset_index(drop=True)
 
     lows, highs = find_pivots(df, cfg)
     lows, highs = label_pivots(lows, highs)
