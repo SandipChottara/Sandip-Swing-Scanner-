@@ -5,6 +5,7 @@
 <meta name="theme-color" content="#123A5E">
 <title>Swing Scanner</title>
 <link rel="manifest" href="manifest.json">
+<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
 <style>
 :root{--bg:#0B1020;--card:#151D2E;--card2:#1C2537;--line:#2A3448;--tx:#E9EFF8;
  --dim:#8D9BB3;--gold:#E0A800;--grn:#3FBF7F;--red:#FF6B6B;--blue:#4A8FD4}
@@ -53,7 +54,8 @@ ul.why li{margin-bottom:4px}
 table.m{width:100%;border-collapse:collapse;font-size:12.5px}
 table.m td{padding:4px 6px;border-bottom:1px solid var(--line);color:var(--dim);vertical-align:top}
 table.m td:first-child{width:44px;font-weight:700;color:#8FB4E8;text-align:right}
-.chart{margin-top:10px;background:#0E1626;border:1px solid var(--line);border-radius:8px;padding:4px}
+.chart{margin-top:10px;background:#0E1626;border:1px solid var(--line);border-radius:8px;height:230px;overflow:hidden}
+.tvlink{display:block;text-align:right;font-size:11.5px;color:#4A8FD4;text-decoration:none;margin-top:5px}
 .load{text-align:center;padding:56px 20px;color:var(--dim)}
 .sp{width:26px;height:26px;border:3px solid var(--line);border-top-color:var(--gold);border-radius:50%;animation:s .8s linear infinite;margin:0 auto 14px}
 @keyframes s{to{transform:rotate(360deg)}}
@@ -87,57 +89,96 @@ function rows(pairs){
 }
 
 
-function svgChart(r){
-  var C=r.chart; if(!C||!C.c||!C.c.length) return '';
-  var W=340,H=170,PL=4,PR=44,PT=8,PB=16;
-  var n=C.c.length, lo=1e9, hi=-1e9;
-  for(var i=0;i<n;i++){ if(C.l[i]!=null&&C.l[i]<lo)lo=C.l[i]; if(C.h[i]!=null&&C.h[i]>hi)hi=C.h[i]; }
-  [r.support,r.resistance].forEach(function(z){ if(z){ if(z.price<lo)lo=z.price; if(z.price>hi)hi=z.price; }});
-  if(r.trigger_level){ if(r.trigger_level>hi)hi=r.trigger_level; if(r.trigger_level<lo)lo=r.trigger_level; }
-  var pad=(hi-lo)*0.06||1; lo-=pad; hi+=pad;
-  var iw=W-PL-PR, ih=H-PT-PB;
-  function X(i){return PL+ i*(iw/(n-1||1));}
-  function Y(p){return PT+ (hi-p)/(hi-lo)*ih;}
-  var s='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block">';
-  // zones
-  if(r.support) s+='<rect x="'+PL+'" y="'+Y(r.support.high).toFixed(1)+'" width="'+iw+'" height="'+Math.max(1,(Y(r.support.low)-Y(r.support.high))).toFixed(1)+'" fill="#3FBF7F" opacity=".13"/>';
-  if(r.resistance) s+='<rect x="'+PL+'" y="'+Y(r.resistance.high).toFixed(1)+'" width="'+iw+'" height="'+Math.max(1,(Y(r.resistance.low)-Y(r.resistance.high))).toFixed(1)+'" fill="#FF6B6B" opacity=".13"/>';
-  // trigger line
-  if(r.trigger_level) s+='<line x1="'+PL+'" y1="'+Y(r.trigger_level).toFixed(1)+'" x2="'+(PL+iw)+'" y2="'+Y(r.trigger_level).toFixed(1)+'" stroke="#E0A800" stroke-width="1" stroke-dasharray="4 3"/>'+
-    '<text x="'+(PL+iw+3)+'" y="'+(Y(r.trigger_level)+3).toFixed(1)+'" fill="#E0A800" font-size="8">trig '+r.trigger_level+'</text>';
-  // stop
-  if(r.stop) s+='<line x1="'+PL+'" y1="'+Y(r.stop).toFixed(1)+'" x2="'+(PL+iw)+'" y2="'+Y(r.stop).toFixed(1)+'" stroke="#FF6B6B" stroke-width="1" stroke-dasharray="2 3"/>'+
-    '<text x="'+(PL+iw+3)+'" y="'+(Y(r.stop)+3).toFixed(1)+'" fill="#FF6B6B" font-size="8">SL '+r.stop+'</text>';
-  // candles
-  var cw=Math.max(1.1, iw/n*0.62);
-  for(var i=0;i<n;i++){
+function chartHTML(r,id){
+  return '<div class="chart" id="'+id+'"></div>'+
+   '<a class="tvlink" target="_blank" rel="noopener" href="https://www.tradingview.com/chart/?symbol=NSE%3A'+
+   encodeURIComponent(r.symbol)+'">Open '+esc(r.symbol)+' in TradingView →</a>';
+}
+
+/* Renders with TradingView's Lightweight Charts, then overlays OUR analysis:
+   S/R zones, trigger, stop, targets, pattern trendlines, HL/LL/HH/LH markers. */
+function drawChart(r,id){
+  var el=document.getElementById(id); if(!el||!window.LightweightCharts) return;
+  var C=r.chart; if(!C||!C.c||!C.c.length) return;
+  el.innerHTML='';
+  var chart=LightweightCharts.createChart(el,{
+    width:el.clientWidth,height:230,
+    layout:{background:{color:'#0E1626'},textColor:'#8D9BB3',fontSize:10},
+    grid:{vertLines:{color:'rgba(42,52,72,.4)'},horzLines:{color:'rgba(42,52,72,.4)'}},
+    rightPriceScale:{borderColor:'#2A3448',scaleMargins:{top:.12,bottom:.22}},
+    timeScale:{borderColor:'#2A3448',timeVisible:false,rightOffset:3},
+    crosshair:{mode:LightweightCharts.CrosshairMode.Normal},
+    handleScale:{axisPressedMouseMove:false},
+  });
+  var cs=chart.addCandlestickSeries({
+    upColor:'#3FBF7F',downColor:'#FF6B6B',borderUpColor:'#3FBF7F',
+    borderDownColor:'#FF6B6B',wickUpColor:'#3FBF7F',wickDownColor:'#FF6B6B'});
+  var bars=[],i;
+  for(i=0;i<C.c.length;i++){
     if(C.c[i]==null) continue;
-    var up=C.c[i]>=C.o[i], col=up?'#3FBF7F':'#FF6B6B', x=X(i);
-    s+='<line x1="'+x.toFixed(1)+'" y1="'+Y(C.h[i]).toFixed(1)+'" x2="'+x.toFixed(1)+'" y2="'+Y(C.l[i]).toFixed(1)+'" stroke="'+col+'" stroke-width=".7"/>';
-    var y1=Y(Math.max(C.o[i],C.c[i])), y2=Y(Math.min(C.o[i],C.c[i]));
-    s+='<rect x="'+(x-cw/2).toFixed(1)+'" y="'+y1.toFixed(1)+'" width="'+cw.toFixed(1)+'" height="'+Math.max(.8,y2-y1).toFixed(1)+'" fill="'+col+'"/>';
+    bars.push({time:C.dates[i],open:C.o[i],high:C.h[i],low:C.l[i],close:C.c[i]});
   }
-  // MAs
-  function path(arr,col){var d='',st=false;
-    for(var i=0;i<n;i++){ if(arr[i]==null){st=false;continue;} d+=(st?'L':'M')+X(i).toFixed(1)+' '+Y(arr[i]).toFixed(1)+' '; st=true; }
-    return d?'<path d="'+d+'" fill="none" stroke="'+col+'" stroke-width=".9" opacity=".85"/>':''; }
-  s+=path(C.dma20,'#4A8FD4')+path(C.dma50,'#9B7BD4');
-  // pattern lines
+  cs.setData(bars);
+
+  function ma(arr,col){
+    var d=[];
+    for(var j=0;j<arr.length;j++) if(arr[j]!=null) d.push({time:C.dates[j],value:arr[j]});
+    if(!d.length) return;
+    chart.addLineSeries({color:col,lineWidth:1,priceLineVisible:false,lastValueVisible:false}).setData(d);
+  }
+  ma(C.dma20,'#4A8FD4'); ma(C.dma50,'#9B7BD4');
+
+  // volume, in its own pane at the bottom
+  var vs=chart.addHistogramSeries({priceFormat:{type:'volume'},priceScaleId:'vol',
+    color:'rgba(74,143,212,.45)'});
+  chart.priceScale('vol').applyOptions({scaleMargins:{top:.82,bottom:0}});
+  var vd=[]; for(i=0;i<C.v.length;i++) if(C.c[i]!=null)
+    vd.push({time:C.dates[i],value:C.v[i],
+      color:(C.c[i]>=C.o[i]?'rgba(63,191,127,.4)':'rgba(255,107,107,.4)')});
+  vs.setData(vd);
+
+  // our levels
+  function line(p,col,title,style){
+    if(p==null) return;
+    cs.createPriceLine({price:p,color:col,lineWidth:1,
+      lineStyle:style===undefined?2:style,axisLabelVisible:true,title:title});
+  }
+  if(r.support)    line(r.support.price,'#3FBF7F','Support');
+  if(r.resistance) line(r.resistance.price,'#FF6B6B','Resistance');
+  line(r.trigger_level,'#E0A800','Trigger',0);
+  line(r.stop,'#FF6B6B','Stop');
+  line(r.target1,'#7FE0AC','T1');
+  line(r.target2,'#7FE0AC','T2');
+
+  // pattern trendlines
   (r.patterns||[]).slice(0,1).forEach(function(p){
     if(!p.lines) return;
     ['upper','lower'].forEach(function(k){
       var L=p.lines[k]; if(!L) return;
-      var x1=L[0]-(C.offset||0), x2=L[2]-(C.offset||0);
-      if(x1<0)x1=0; if(x2>n-1)x2=n-1;
-      s+='<line x1="'+X(x1).toFixed(1)+'" y1="'+Y(L[1]).toFixed(1)+'" x2="'+X(x2).toFixed(1)+'" y2="'+Y(L[3]).toFixed(1)+'" stroke="#E0A800" stroke-width=".9" opacity=".75" stroke-dasharray="3 2"/>';
+      var off=C.offset||0, x1=L[0]-off, x2=L[2]-off;
+      if(x1<0) x1=0; if(x2>C.dates.length-1) x2=C.dates.length-1;
+      if(!C.dates[x1]||!C.dates[x2]) return;
+      chart.addLineSeries({color:'#E0A800',lineWidth:1,lineStyle:2,
+        priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false})
+        .setData([{time:C.dates[x1],value:L[1]},{time:C.dates[x2],value:L[3]}]);
     });
   });
-  // pivot labels
-  (C.pivot_lows||[]).forEach(function(p){ if(p.lab==='HL'||p.lab==='LL')
-    s+='<text x="'+X(p.x).toFixed(1)+'" y="'+(Y(p.y)+9).toFixed(1)+'" fill="'+(p.lab==='HL'?'#7FE0AC':'#FFB0AB')+'" font-size="7" text-anchor="middle">'+p.lab+'</text>'; });
-  (C.pivot_highs||[]).forEach(function(p){ if(p.lab==='LH'||p.lab==='HH')
-    s+='<text x="'+X(p.x).toFixed(1)+'" y="'+(Y(p.y)-3).toFixed(1)+'" fill="'+(p.lab==='HH'?'#7FE0AC':'#FFB0AB')+'" font-size="7" text-anchor="middle">'+p.lab+'</text>'; });
-  return s+'</svg>';
+
+  // HL / LL / HH / LH markers
+  var mk=[];
+  (C.pivot_lows||[]).forEach(function(p){
+    if((p.lab==='HL'||p.lab==='LL')&&C.dates[p.x])
+      mk.push({time:C.dates[p.x],position:'belowBar',shape:'arrowUp',
+        color:p.lab==='HL'?'#3FBF7F':'#FF6B6B',text:p.lab});});
+  (C.pivot_highs||[]).forEach(function(p){
+    if((p.lab==='LH'||p.lab==='HH')&&C.dates[p.x])
+      mk.push({time:C.dates[p.x],position:'aboveBar',shape:'arrowDown',
+        color:p.lab==='HH'?'#3FBF7F':'#FF6B6B',text:p.lab});});
+  mk.sort(function(a,b){return a.time<b.time?-1:1;});
+  if(mk.length) cs.setMarkers(mk);
+
+  chart.timeScale().fitContent();
+  new ResizeObserver(function(){chart.applyOptions({width:el.clientWidth});}).observe(el);
 }
 
 function card(r,i){
@@ -148,7 +189,7 @@ function card(r,i){
   var b='';
   b+=tierBadge(r.tier||'');
   b+='<span class="b">'+esc(r.grade)+'</span>';
-  if(r.confirmed) b+='<span class="b g">Breakout confirmed</span>'; else b+='<span class="b gold">Not yet broken out</span>';
+  if(r.confirmed){var dsb=(r.structure||{}).days_since_breakout; b+='<span class="b g">Broke out '+(dsb===0?'today':dsb+'d ago')+'</span>';} else b+='<span class="b gold">Not yet broken out</span>';
   if(sp) b+='<span class="b">Support '+sp.score+'/9 '+esc(sp.grade)+'</span>';
   if(V.selling_weakening) b+='<span class="b">Selling drying up</span>';
   if(V.pullback_contracted) b+='<span class="b">Pullback on low volume</span>';
@@ -208,7 +249,7 @@ function card(r,i){
   return '<div class="card">'+
    '<div class="r1"><div><span class="rk">'+(i+1)+'</span><span class="sym">'+esc(r.symbol)+'</span></div>'+
    '<div class="px">₹'+n(r.cmp)+'<br><span class="sc">'+n(r.score)+'</span></div></div>'+
-   '<div class="bs">'+b+'</div>'+ w + '<div class="chart">'+svgChart(r)+'</div>'+
+   '<div class="bs">'+b+'</div>'+ w + chartHTML(r,'ch'+TAB+i)+
    '<div class="lv">'+
      '<div><div class="k">Trigger</div><div class="v">₹'+n(r.trigger_level)+'</div></div>'+
      '<div><div class="k">Stop</div><div class="v down">₹'+n(r.stop)+'</div></div>'+
@@ -275,11 +316,20 @@ function render(){
   if(TAB==='method'){o.innerHTML=METHOD;window.scrollTo(0,0);return;}
   if(!DATA)return;
   var list=DATA[TAB]||[], h='';
+  var rg=DATA.regime;
+  if(rg){
+    var ok=rg.favourable;
+    h+='<div class="'+(ok?'note':'warn')+'" style="margin-bottom:11px">'+
+       (ok?'✅ ':'⚠️ ')+esc(rg.label)+'<br><span style="font-size:11.5px;opacity:.85">Nifty '+rg.nifty+
+       ' vs 50 DMA '+rg.dma50+' ('+(rg.pct_vs_50dma>0?'+':'')+rg.pct_vs_50dma+'%)</span></div>';
+  }
   (DATA.notes||[]).forEach(function(x){h+='<div class="note">⚠️ '+esc(x)+'</div>';});
   if(!list.length){
     h+='<div class="empty">No '+TAB+' setups today.<br><br>Every stage is mandatory — nothing cleared the full sequence. That is a real result, not an error.</div>';
   } else { list.forEach(function(r,i){h+=card(r,i);}); }
   o.innerHTML=h; window.scrollTo(0,0);
+  // charts must be drawn AFTER the HTML is in the DOM
+  setTimeout(function(){ list.forEach(function(r,i){ try{drawChart(r,'ch'+TAB+i);}catch(e){} }); },30);
 }
 
 function load(bust){
